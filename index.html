@@ -968,6 +968,119 @@
       .sticky-cta { display: none; }
       .footer { padding-bottom: 32px; }
     }
+
+    /* ============================================================
+       LIGHTBOX
+    ============================================================ */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .lightbox.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .lightbox-counter {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      letter-spacing: 0.08em;
+    }
+
+    .lightbox-track-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .lightbox-track {
+      display: flex;
+      transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+      will-change: transform;
+    }
+
+    .lightbox-slide {
+      min-width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+    }
+
+    .lightbox-slide img {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 12px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 40px;
+      height: 40px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s;
+    }
+
+    .lightbox-nav:hover { background: rgba(255,255,255,0.15); }
+    .lightbox-nav.lb-prev { left: 12px; }
+    .lightbox-nav.lb-next { right: 12px; }
+
+    .lightbox-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: 20px;
+    }
+
+    .lightbox-dots .dot {
+      background: rgba(255,255,255,0.25);
+    }
+
+    .lightbox-dots .dot.active {
+      background: var(--warm-amber);
+    }
   </style>
 </head>
 
@@ -1319,7 +1432,7 @@
     <div class="footer-brand">Nivora Coffee Company</div>
     <div class="footer-note">
       Premium Ground Coffee · 100% Arabica · Made in India<br>
-      © 2024 Nivora Coffee Company. All rights reserved.
+      © 2026 Nivora Coffee Company. All rights reserved.
     </div>
     <div class="footer-links">
       <a href="#">Privacy Policy</a>
@@ -1352,6 +1465,41 @@
       <div class="sticky-meta-item">🚚 Fast Delivery</div>
       <div class="sticky-meta-item">⚡ Prime Eligible</div>
     </div>
+  </div>
+
+  <!-- ============================================================
+    LIGHTBOX OVERLAY
+  ============================================================ -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+
+    <div class="lightbox-counter" id="lbCounter">1 / 4</div>
+
+    <button class="lightbox-close" id="lbClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M18 6L6 18M6 6l12 12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="lightbox-track-wrap">
+      <div class="lightbox-track" id="lbTrack">
+        <!-- Slides injected by JS -->
+      </div>
+    </div>
+
+    <button class="lightbox-nav lb-prev" id="lbPrev" aria-label="Previous">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <button class="lightbox-nav lb-next" id="lbNext" aria-label="Next">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+
+    <div class="lightbox-dots" id="lbDots"></div>
+
   </div>
 
   <!-- ============================================================
@@ -1435,6 +1583,93 @@
         window.location.href = href;
       }, 300);
     }
+    // ============================================================
+    // LIGHTBOX
+    // ============================================================
+    const lightbox   = document.getElementById('lightbox');
+    const lbTrack    = document.getElementById('lbTrack');
+    const lbDots     = document.getElementById('lbDots');
+    const lbCounter  = document.getElementById('lbCounter');
+    const lbClose    = document.getElementById('lbClose');
+    const lbPrev     = document.getElementById('lbPrev');
+    const lbNext     = document.getElementById('lbNext');
+
+    let lbCurrent = 0;
+    let lbSlides  = [];
+
+    // Build lightbox slides from carousel images
+    function buildLightbox() {
+      const imgs = track.querySelectorAll('.product-img-placeholder img');
+      imgs.forEach((img, i) => {
+        // Slide
+        const slide = document.createElement('div');
+        slide.className = 'lightbox-slide';
+        const image = document.createElement('img');
+        image.src = img.src;
+        image.alt = img.alt;
+        slide.appendChild(image);
+        lbTrack.appendChild(slide);
+        lbSlides.push(slide);
+
+        // Dot
+        const d = document.createElement('button');
+        d.className = 'dot' + (i === 0 ? ' active' : '');
+        d.setAttribute('aria-label', `Photo ${i + 1}`);
+        d.addEventListener('click', () => lbGoTo(i));
+        lbDots.appendChild(d);
+      });
+    }
+
+    function lbGoTo(idx) {
+      lbCurrent = (idx + lbSlides.length) % lbSlides.length;
+      lbTrack.style.transform = `translateX(-${lbCurrent * 100}%)`;
+      lbCounter.textContent   = `${lbCurrent + 1} / ${lbSlides.length}`;
+      lbDots.querySelectorAll('.dot').forEach((d, i) =>
+        d.classList.toggle('active', i === lbCurrent));
+    }
+
+    function openLightbox(startIndex) {
+      lbGoTo(startIndex);
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // Make each carousel slide tappable
+    slides.forEach((slide, i) => {
+      slide.style.cursor = 'zoom-in';
+      slide.addEventListener('click', () => openLightbox(i));
+    });
+
+    lbClose.addEventListener('click', closeLightbox);
+    lbPrev.addEventListener('click', () => lbGoTo(lbCurrent - 1));
+    lbNext.addEventListener('click', () => lbGoTo(lbCurrent + 1));
+
+    // Close on backdrop tap (not on image)
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft')  lbGoTo(lbCurrent - 1);
+      if (e.key === 'ArrowRight') lbGoTo(lbCurrent + 1);
+    });
+
+    // Swipe support inside lightbox
+    let lbTx = 0;
+    lbTrack.addEventListener('touchstart', e => { lbTx = e.touches[0].clientX; }, { passive: true });
+    lbTrack.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - lbTx;
+      if (Math.abs(dx) > 40) lbGoTo(dx < 0 ? lbCurrent + 1 : lbCurrent - 1);
+    }, { passive: true });
+
+    buildLightbox();
   </script>
 
 </body>
