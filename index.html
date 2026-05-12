@@ -21,8 +21,20 @@
 
     fbq('init', 'YOUR_PIXEL_ID');   // ←←← REPLACE THIS with your real Pixel ID
 
+    const nivoraProductPixelData = {
+      content_ids: ['B0GSW8378M'],
+      content_name: 'Nivora Coffee Company Ground Coffee Powder',
+      content_category: 'Coffee',
+      content_type: 'product',
+      currency: 'INR',
+      value: 430.00
+    };
+
     // Fire PageView when page loads
     fbq('track', 'PageView');
+
+    // Fire ViewContent for this product page
+    fbq('track', 'ViewContent', nivoraProductPixelData);
   </script>
 
   <noscript>
@@ -1569,12 +1581,14 @@
       e.preventDefault();
       const href = e.currentTarget.href;
 
-      // Fire Meta Pixel Event
       if (typeof fbq !== 'undefined') {
-        fbq('track', 'InitiateCheckout', {
-          currency: 'INR',
-          value: 430.00
-        });
+        const checkoutPixelData = {
+          ...nivoraProductPixelData,
+          button_id: e.currentTarget.id || 'amazon_cta',
+          destination: 'Amazon'
+        };
+
+        fbq('track', 'InitiateCheckout', checkoutPixelData);
         console.log('%c🔥 Meta Pixel: InitiateCheckout fired (₹430)', 'color:#8B5F3B; font-weight:bold');
       }
 
