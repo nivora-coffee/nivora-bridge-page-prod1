@@ -9,38 +9,37 @@
   <!-- ============================================================
       META PIXEL — Replace YOUR_PIXEL_ID with your actual Pixel ID
       ============================================================ -->
-  <script>
+    <!-- Meta Pixel Code -->
+    <script>
     !function(f,b,e,v,n,t,s)
     {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
     n.callMethod.apply(n,arguments):n.queue.push(arguments)};
     if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
     n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
-
-    fbq('init', 'YOUR_PIXEL_ID');   // ←←← REPLACE THIS with your real Pixel ID
+    fbq('init', '803752739244989');
 
     const nivoraProductPixelData = {
-      content_ids: ['B0GSW8378M'],
-      content_name: 'Nivora Coffee Company Ground Coffee Powder',
+      content_ids: ['B0GRHKL9YG'],
+      content_name: 'Nivora Coffee Company Filter Coffee Powder',
       content_category: 'Coffee',
       content_type: 'product',
       currency: 'INR',
-      value: 430.00
+      value: 370.00
     };
 
     // Fire PageView when page loads
     fbq('track', 'PageView');
 
     // Fire ViewContent for this product page
-    fbq('track', 'ViewContent', nivoraProductPixelData);
-  </script>
-
-  <noscript>
-    <img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id=YOUR_PIXEL_ID&ev=PageView&noscript=1"/>
-  </noscript>
+    //fbq('track', 'ViewContent', nivoraProductPixelData);
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=803752739244989&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
   <!-- ============================================================ -->
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
